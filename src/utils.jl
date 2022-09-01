@@ -2,10 +2,12 @@
 # Licensed under the MIT License. See LICENCE in the project root.
 # ------------------------------------------------------------------
 
+power2(a::AbstractArray{T,N}) where {T,N} = a.^2
+
 function fastdistance(img, kern; weights=fill(1.0, size(kern)))
   wkern = weights.*kern
 
-  A² = imfilter_kernel(img.^2, weights)
+  A² = imfilter_kernel(power2(img), weights)
   AB = imfilter_kernel(img, wkern)
   B² = sum(wkern .* kern)
 
