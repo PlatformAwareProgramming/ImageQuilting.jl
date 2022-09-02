@@ -8,8 +8,7 @@
   end
   
   T = ComplexF64
-  
-  
+    
   function clkarray_create(img)
       img = T.(img)
   
@@ -49,40 +48,30 @@
   
   Base.getindex(A::CLKArray{T,N}, I::Vararg{Int,N}) where {T,N} = get(A.img, I, zero(T))
     
-  @platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) 
-      CLKArray(img) 
-  end
+  @platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) CLKArray(img) end
   
   @platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, array, I) view(array, I) end
   
   @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img, kern)  
       imfilter_opencl(img, kern)
   end
-  
-  
+    
   function imfilter_opencl(img, kern)
 
     # retrieve basic info
      N = ndims(img.img)
-     #T = ComplexF64
   
      # GPU metadata
      ctx = GPU.ctx; queue = GPU.queue
      mult_kernel = GPU.mult_kernel
    
      # operations with complex type
-  #   img  = T.(img)
      kern = T.(kern)
      
      # kernel may require padding
      prepad  = ntuple(d->(size(kern,d)-1) ÷ 2, N)
      postpad = ntuple(d->(size(kern,d)  ) ÷ 2, N)
-   
-     # OpenCL FFT expects powers of 2, 3, 5, 7, 11 or 13
-  #   clpad = clfftpad(img)
-  #   A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
-  #   A = parent(A)
-   
+      
      krn = zeros(T, size(img.A))
      indexesK = ntuple(d->[size(img.A,d)-prepad[d]+1:size(img.A,d);1:size(kern,d)-prepad[d]], N)
      krn[indexesK...] = reflect(kern) 
@@ -99,7 +88,6 @@
      clfft.bake!(p_, queue)
   
      # populate GPU memory
-  #   bufA   = cl.Buffer(T, ctx, :copy, hostbuf=A)
      bufA_   = cl.Buffer(T, ctx, :alloc, length(img.A))
      bufkrn = cl.Buffer(T, ctx, :copy, hostbuf=krn)
      bufRES = cl.Buffer(T, ctx, length(img.A))
@@ -120,12 +108,7 @@
      out = Array{realtype(eltype(AF))}(undef, ntuple(d->size(img,d) - prepad[d] - postpad[d], N)...)
      indexesA = ntuple(d->postpad[d]+1:size(img,d)-prepad[d], N)
      copyreal!(out, AF, indexesA)
-     
-    # if (Sys.free_memory() / 2^20 < 1000) 
-    #  @info "GC !"
-    #  GC.gc() 
-    # end
-  
+
      out
   end
   
