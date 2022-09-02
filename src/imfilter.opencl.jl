@@ -18,8 +18,19 @@
       A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
       A = parent(A)
   
+      # plan FFT
+      p = clfft.Plan(T, GPU.ctx, size(A))
+      clfft.set_layout!(p, :interleaved, :interleaved)
+      clfft.set_result!(p, :inplace)
+      clfft.bake!(p, GPU.queue)
+  
+      p_ = clfft.Plan(T, GPU.ctx, size(A))
+      clfft.set_layout!(p_, :interleaved, :interleaved)
+      clfft.set_result!(p_, :outofplace)
+      clfft.bake!(p_, GPU.queue)
+  
       # populate GPU memory
-      (cl.Buffer(T, GPU.ctx, :copy, hostbuf=A), A, clpad)
+      (cl.Buffer(T, GPU.ctx, :copy, hostbuf=A), A, clpad, p, p_)
   end
   
   struct CLKArray{T,N} <: AbstractArray{T,N}
@@ -28,29 +39,30 @@
       img
       A
       clpad
-      
+      plan
+      plan_
       function CLKArray(img) 
-        N = ndims(img)
-        T = eltype(img)
-        (bufA1, A, clpad) = clkarray_create(img)
-        bufA2 = clkarray_create(img.^2)[1]
-        new{T,N}(bufA1, bufA2, img, A, clpad)
+          N = ndims(img)
+          T = eltype(img)
+          (bufA1, A, clpad, plan, plan_) = clkarray_create(img)
+          bufA2 = clkarray_create(img.^2)[1]
+          new{T,N}(bufA1, bufA2, img, A, clpad, plan, plan_)
       end
   
-      function CLKArray(T, N, bufA, bufA_,img, A, clpad)
-        new{T,N}(bufA, bufA_, img, A, clpad)
+      function CLKArray(T, N, bufA, A, bufA_,img, clpad, plan, plan_)
+          new{T,N}(bufA, bufA_, img, A, clpad, plan, plan_)
       end
   
-  end  
-  
-  function power2(a::CLKArray{T,N}) where {T,N}
-      CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad) 
   end
   
-  Base.size(A::CLKArray{T,N}) where {T,N}= size(A.img)
+  function power2(a::CLKArray{T,N}) where {T,N} 
+      CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad, a.plan, a.plan_) 
+  end
+  
+  Base.size(A::CLKArray{T,N}) where {T,N} = size(A.img)
   
   Base.getindex(A::CLKArray{T,N}, I::Vararg{Int,N}) where {T,N} = get(A.img, I, zero(T))
-    
+  
   @platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) 
       CLKArray(img) 
   end
@@ -61,8 +73,8 @@
       imfilter_opencl(img, kern)
   end
   
-  
   function imfilter_opencl(img, kern)
+     
      # retrieve basic info
      N = ndims(img.img)
      #T = ComplexF64
@@ -88,20 +100,12 @@
      indexesK = ntuple(d->[size(img.A,d)-prepad[d]+1:size(img.A,d);1:size(kern,d)-prepad[d]], N)
      krn[indexesK...] = reflect(kern) 
   
-     # plan FFT
-     p = clfft.Plan(T, ctx, size(img.A))
-     clfft.set_layout!(p, :interleaved, :interleaved)
-     clfft.set_result!(p, :inplace)
-     clfft.bake!(p, queue)
-  
-     p_ = clfft.Plan(T, ctx, size(img.A))
-     clfft.set_layout!(p_, :interleaved, :interleaved)
-     clfft.set_result!(p_, :outofplace)
-     clfft.bake!(p_, queue)
-  
+     p = img.plan
+     p_ = img.plan_
+ 
      # populate GPU memory
   #   bufA   = cl.Buffer(T, ctx, :copy, hostbuf=A)
-     bufA_   = cl.Buffer(T, ctx, :alloc, length(img.A))
+     bufA_  = cl.Buffer(T, ctx, :alloc, length(img.A))
      bufkrn = cl.Buffer(T, ctx, :copy, hostbuf=krn)
      bufRES = cl.Buffer(T, ctx, length(img.A))
      
@@ -121,11 +125,6 @@
      out = Array{realtype(eltype(AF))}(undef, ntuple(d->size(img,d) - prepad[d] - postpad[d], N)...)
      indexesA = ntuple(d->postpad[d]+1:size(img,d)-prepad[d], N)
      copyreal!(out, AF, indexesA)
-     
-    # if (Sys.free_memory() / 2^20 < 1000) 
-    #  @info "GC !"
-    #  GC.gc() 
-    # end
   
      out
   end
