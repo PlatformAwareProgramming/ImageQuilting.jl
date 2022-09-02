@@ -23,8 +23,8 @@
   end
   
   struct CLKArray{T,N} <: AbstractArray{T,N}
-      bufA
-      bufA_
+      bufA    # img 
+      bufA_   # img^2
       img
       A
       clpad
@@ -43,9 +43,7 @@
   
   end  
   
-  function power2(a::CLKArray{T,N}) where {T,N}
-      CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad) 
-  end
+  power2(a::CLKArray{T,N}) where {T,N} = CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad) 
   
   Base.size(A::CLKArray{T,N}) where {T,N}= size(A.img)
   
@@ -63,7 +61,8 @@
   
   
   function imfilter_opencl(img, kern)
-     # retrieve basic info
+
+    # retrieve basic info
      N = ndims(img.img)
      #T = ComplexF64
   
