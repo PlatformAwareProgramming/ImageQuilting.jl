@@ -55,17 +55,13 @@
   
   end
   
-  function power2(a::CLKArray{T,N}) where {T,N} 
-      CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad, a.plan, a.plan_) 
-  end
+  power2(a::CLKArray{T,N}) where {T,N} = CLKArray(T, N, a.bufA_, a.bufA, a.img, a.A, a.clpad, a.plan, a.plan_) 
   
   Base.size(A::CLKArray{T,N}) where {T,N} = size(A.img)
   
   Base.getindex(A::CLKArray{T,N}, I::Vararg{Int,N}) where {T,N} = get(A.img, I, zero(T))
   
-  @platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) 
-      CLKArray(img) 
-  end
+  @platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) CLKArray(img) end
   
   @platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, array, I) view(array, I) end
   
@@ -77,25 +73,18 @@
      
      # retrieve basic info
      N = ndims(img.img)
-     #T = ComplexF64
   
      # GPU metadata
      ctx = GPU.ctx; queue = GPU.queue
      mult_kernel = GPU.mult_kernel
    
      # operations with complex type
-  #   img  = T.(img)
      kern = T.(kern)
      
      # kernel may require padding
      prepad  = ntuple(d->(size(kern,d)-1) ÷ 2, N)
      postpad = ntuple(d->(size(kern,d)  ) ÷ 2, N)
-   
-     # OpenCL FFT expects powers of 2, 3, 5, 7, 11 or 13
-  #   clpad = clfftpad(img)
-  #   A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
-  #   A = parent(A)
-   
+     
      krn = zeros(T, size(img.A))
      indexesK = ntuple(d->[size(img.A,d)-prepad[d]+1:size(img.A,d);1:size(kern,d)-prepad[d]], N)
      krn[indexesK...] = reflect(kern) 
@@ -103,8 +92,6 @@
      p = img.plan
      p_ = img.plan_
  
-     # populate GPU memory
-  #   bufA   = cl.Buffer(T, ctx, :copy, hostbuf=A)
      bufA_  = cl.Buffer(T, ctx, :alloc, length(img.A))
      bufkrn = cl.Buffer(T, ctx, :copy, hostbuf=krn)
      bufRES = cl.Buffer(T, ctx, length(img.A))
