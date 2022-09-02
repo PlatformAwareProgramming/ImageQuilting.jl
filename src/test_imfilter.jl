@@ -30,7 +30,7 @@ function test_imfilter(N)
 
     @info("SECOND RUN - GPU - OpenCL")
     global GPU = gpu_setup()
-    r2 = @btime imfilter_opencl($img, $krn)
+    r2 = @btime imfilter_opencl(CLKArray($img), $krn)
     @info "check = ", r2[X,X,X]
 
     @info "THIRD RUN -  CPU - ImageFiltering"

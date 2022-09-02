@@ -7,19 +7,64 @@
   global GPU = gpu_setup()
 end
 
-@platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, array) array end
+T = ComplexF64
+
+function clkarray_create(img)
+
+    img = T.(img)
+
+    # OpenCL FFT expects powers of 2, 3, 5, 7, 11 or 13
+    clpad = clfftpad(img) 
+    A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
+    A = parent(A)
+    
+    # populate GPU memory
+    (A, clpad)
+end
+
+struct CLKArray{T,N} <: AbstractArray{T,N}
+
+    img
+    A
+    clpad
+
+    function CLKArray(img) 
+        N = ndims(img)
+        T = eltype(img)
+        (A, clpad) = clkarray_create(img)
+        #bufA2 = clkarray_create(img.^2)
+        new{T,N}(img, A, clpad)
+    end
+
+    function CLKArray(T, N, img, A, clpad)
+        new{T,N}(img, A, clpad)
+    end
+
+end
+
+power2(a::CLKArray{T,N}) where {T,N} = CLKArray(T, N, a.img.^2, a.A, a.clpad) 
+
+Base.size(A::CLKArray{T,N}) where {T,N} = size(A.img)
+
+Base.getindex(A::CLKArray{T,N}, I::Vararg{Int,N}) where {T,N} = get(A.img, I, zero(T))
+
+@platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img) CLKArray(img) end
 
 @platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, array, I) view(array, I) end
 
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::OpenCL_API}, img, kern)
-    imfilter_opencl(img,kern)
+    imfilter_opencl(img, kern)
 end
 
+function imfilter_opencl(img, kern)
 
-  function imfilter_opencl(img, kern)
+   A = img.A
+   clpad = img.clpad
+   img = img.img
+
+
    # retrieve basic info
    N = ndims(img)
-   T = ComplexF64
 
    # GPU metadata
    ctx = GPU.ctx; queue = GPU.queue
@@ -34,22 +79,28 @@ end
    postpad = ntuple(d->(size(kern,d)  ) ÷ 2, N)
  
    # OpenCL FFT expects powers of 2, 3, 5, 7, 11 or 13
-   clpad = clfftpad(img)
-   A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
-   A = parent(A)
+   #clpad = clfftpad(img)
+   #A = padarray(img, Pad(:symmetric, zeros(Int, ndims(img)), clpad))
+   #A = parent(A)
  
    krn = zeros(T, size(A))
    indexesK = ntuple(d->[size(A,d)-prepad[d]+1:size(A,d);1:size(kern,d)-prepad[d]], N)
    krn[indexesK...] = reflect(kern) 
 
    # plan FFT
-   p = clfft.Plan(T, ctx, size(A))
+   p = clfft.Plan(T, GPU.ctx, size(A))
    clfft.set_layout!(p, :interleaved, :interleaved)
    clfft.set_result!(p, :inplace)
-   clfft.bake!(p, queue)
+   clfft.bake!(p, GPU.queue)
+
+   #p_ = clfft.Plan(T, GPU.ctx, size(A))
+   #clfft.set_layout!(p_, :interleaved, :interleaved)
+   #clfft.set_result!(p_, :outofplace)
+   #clfft.bake!(p_, GPU.queue)
  
    # populate GPU memory
    bufA   = cl.Buffer(T, ctx, :copy, hostbuf=A)
+   #bufA_  = cl.Buffer(T, ctx, :alloc, length(A))
    bufkrn = cl.Buffer(T, ctx, :copy, hostbuf=krn)
    bufRES = cl.Buffer(T, ctx, length(A))
    
