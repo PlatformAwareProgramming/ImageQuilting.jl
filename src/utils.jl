@@ -5,7 +5,7 @@
 function fastdistance(img, kern; weights=fill(1.0, size(kern)))
   wkern = weights.*kern
 
-  A² = imfilter_kernel(img.^2, weights)
+  A² = imfilter_kernel(power2(img), weights)
   AB = imfilter_kernel(img, wkern)
   B² = sum(wkern .* kern)
 
