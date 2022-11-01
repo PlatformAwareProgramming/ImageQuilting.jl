@@ -11,9 +11,8 @@ end
 @platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API}, array, I) Array(array[I]) end
 
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API}, img, krn)
-    imfilter_cuda(img,krn)
- end
-
+   imfilter_cuda(img,krn)
+end
 
 function imfilter_cuda(img, krn)
  
