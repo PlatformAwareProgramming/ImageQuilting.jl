@@ -2,20 +2,16 @@
 # Licensed under the MIT License. See LICENCE in the project root.
 # ------------------------------------------------------------------
 
-#@platform aware function init_imfilter_kernel({accelerator_api::OpenCL_API})
-@platform default function init_imfilter_kernel()
+@platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)})
   println("Running on OpenCL device")
   global cl_device, cl_ctx, cl_queue = cl.create_compute_context()
 end
 
-#@platform aware function array_kernel({accelerator_api::OpenCL_API}, array) array end
-@platform default function array_kernel(array) array end
+@platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) array end
 
-#@platform aware function view_kernel({accelerator_api::OpenCL_API}, array, I) view(array, I) end
-@platform default function view_kernel(array, I) view(array, I) end
+@platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array, I) view(array, I) end
 
-#@platform aware function imfilter_kernel({accelerator_api::OpenCL_API}, img, kern)
-@platform default function imfilter_kernel(img, krn)
+@platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, img, krn)
   imfilter_opencl(img, krn)
 end
 
