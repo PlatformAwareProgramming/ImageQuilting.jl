@@ -11,7 +11,9 @@ end
 @platform default function view_kernel(array, I) view(array, I) end
 
 @platform default function imfilter_kernel(img, krn)
-  imfilter(img, centered(krn), Inner(), Algorithm.FFT())
+  imfilter_cpu(img, krn)
 end
 
-
+function imfilter_cpu(img, krn)
+  imfilter(img, centered(krn), Inner(), Algorithm.FFT())
+end
