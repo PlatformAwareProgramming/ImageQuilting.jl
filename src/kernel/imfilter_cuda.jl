@@ -28,6 +28,4 @@ function imfilter_cuda(img, krn)
    # recover result
    finalsize = size(img) .- (size(krn) .- 1)
    real.(result[CartesianIndices(finalsize)]) |> Array
-
 end
-

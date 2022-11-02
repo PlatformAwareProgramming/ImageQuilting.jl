@@ -17,4 +17,3 @@ end
 function imfilter_cpu(img, krn)
   imfilter(img, centered(krn), Inner(), Algorithm.FFT())
 end
-
