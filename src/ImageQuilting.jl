@@ -17,6 +17,7 @@ using ProgressMeter: Progress, next!
 using FFTW: set_num_threads
 using CpuId: cpucores
 using RecipesBase
+
 using CUDA
 using OpenCL
 using CLFFT
@@ -38,10 +39,12 @@ include("iqsim.jl")
 include("voxelreuse.jl")
 include("geostats.jl")
 
-include("kernels.jl")
-include("kernel/imfilter_default.jl")
-include("kernel/imfilter_cuda.jl")
-include("kernel/imfilter_opencl.jl")
+function __init__()    
+  include("src/kernels.jl")
+  include("src/kernel/imfilter_default.jl")
+  include("src/kernel/imfilter_cuda.jl")
+  include("src/kernel/imfilter_opencl.jl")
+end
 
 export
   # functions

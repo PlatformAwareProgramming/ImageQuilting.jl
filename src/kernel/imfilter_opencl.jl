@@ -6,9 +6,9 @@
   println("Running on OpenCL device")
 end
 
-@platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) array end
+@platform aware array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) = array
 
-@platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array, I) view(array, I) end
+@platform aware view_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array, I) = view(array, I)
 
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, img, krn)
   imfilter_opencl(img, krn)

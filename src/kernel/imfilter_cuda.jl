@@ -2,15 +2,23 @@
 # Licensed under the MIT License. See LICENCE in the project root.
 # ------------------------------------------------------------------
 
-@platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API})
-  println("Running on CUDA GPU")
+@platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), 
+                                               accelerator_manufacturer::NVIDIA, 
+                                               accelerator_api::(@api CUDA)})
+  println("Running on NVIDIA/CUDA GPU")
 end
 
-@platform aware function array_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API}, array) CuArray(array) end
+@platform aware array_kernel({accelerator_count::(@atleast 1), 
+                              accelerator_manufacturer::NVIDIA,
+                              accelerator_api::(@api CUDA)}, array) = CuArray(array)
 
-@platform aware function view_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API}, array, I) Array(array[I]) end
+@platform aware view_kernel({accelerator_count::(@atleast 1), 
+                             accelerator_manufacturer::NVIDIA, 
+                             accelerator_api::(@api CUDA)}, array, I)  = Array(array[I])
 
-@platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::CUDA_API}, img, krn)
+@platform aware function imfilter_kernel({accelerator_count::(@atleast 1), 
+                                          accelerator_manufacturer::NVIDIA, 
+                                          accelerator_api::(@api CUDA)}, img, krn)
    imfilter_cuda(img,krn)
 end
 

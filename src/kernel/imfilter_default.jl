@@ -6,9 +6,9 @@
   println("Running on DEFAULT PLATFORM")
 end
 
-@platform default function array_kernel(array) array end
+@platform default array_kernel(array) = array
 
-@platform default function view_kernel(array, I) view(array, I) end
+@platform default view_kernel(array, I) = view(array, I)
 
 @platform default function imfilter_kernel(img, krn)
   imfilter_cpu(img, krn)

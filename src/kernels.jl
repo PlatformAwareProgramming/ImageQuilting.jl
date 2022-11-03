@@ -4,3 +4,4 @@
 @platform parameter clear
 @platform parameter accelerator_count
 @platform parameter accelerator_api
+@platform parameter accelerator_manufacturer
