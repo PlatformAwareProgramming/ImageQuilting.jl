@@ -46,6 +46,8 @@ function __init__()
   include("src/kernel/imfilter_opencl.jl")
 end
 
+include("test_imfilter.jl")
+
 export
   # functions
   iqsim,
