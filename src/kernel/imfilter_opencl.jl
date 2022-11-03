@@ -62,8 +62,6 @@ function imfilter_opencl(img, krn)
 
   finalsize = size(img) .- (size(krn) .- 1)
 
-  GC.gc()
-
   real_result[CartesianIndices(finalsize)]
 end
 

@@ -33,6 +33,9 @@ function test_imfilter(N)
     r2 = @btime imfilter_opencl($img, $krn)
     @info "check = ", r2[X,X,X]
 
+    CLFFT.api.clfftTeardown()
+    GC.gc()
+
     @info "THIRD RUN -  CPU - ImageFiltering"
     r3 = @btime imfilter($img, centered($krn), Inner(), Algorithm.FFT())
     @info "check = ", r3[X,X,X]
