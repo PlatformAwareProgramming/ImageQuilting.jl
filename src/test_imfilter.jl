@@ -19,8 +19,8 @@ function test_imfilter(N)
 
     @info "start"
 
-    img = rand(Float64,(N,N,N))
-    krn = rand(Float64,(10,10,10))
+    img = rand(Float32,(N,N,N))
+    krn = rand(Float32,(10,10,10))
 
     X = Int(round(N/2))
 
@@ -30,11 +30,9 @@ function test_imfilter(N)
 
     @info("SECOND RUN - GPU - OpenCL")
     #global GPU = gpu_setup()
+    init_opencl_context()
     r2 = @btime imfilter_opencl($img, $krn)
     @info "check = ", r2[X,X,X]
-
-    CLFFT.api.clfftTeardown()
-    GC.gc()
 
     @info "THIRD RUN -  CPU - ImageFiltering"
     r3 = @btime imfilter($img, centered($krn), Inner(), Algorithm.FFT())

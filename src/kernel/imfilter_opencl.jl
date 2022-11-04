@@ -3,7 +3,16 @@
 # ------------------------------------------------------------------
 
 @platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)})
-  println("Running on OpenCL device")
+  @info "Running on OpenCL device"
+  init_opencl_context()
+end
+
+function init_opencl_context()
+  # retrieve global OpenCL info
+  device_, ctx_, queue_ = cl.create_compute_context()
+  global device = device_
+  global ctx = ctx_
+  global queue = queue_
 end
 
 @platform aware array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) = array
@@ -14,12 +23,10 @@ end
   imfilter_opencl(img, krn)
 end
 
+
 function imfilter_opencl(img, krn)
   # retrieve basic info
-  T = ComplexF64
-
-  # retrieve global OpenCL info
-  device, ctx, queue = cl.create_compute_context()
+  T = ComplexF32
 
   # build OpenCL program kernels
   conj_kernel = build_conj_kernel(ctx)
@@ -37,6 +44,7 @@ function imfilter_opencl(img, krn)
   fftkrn = T.(padkrn)
 
   # OpenCl setup
+
   plan = CLFFT.Plan(T, ctx, size(fftimg))
   CLFFT.set_layout!(plan, :interleaved, :interleaved)
   CLFFT.set_result!(plan, :inplace)
@@ -67,9 +75,9 @@ end
 
 function build_mult_kernel(ctx)
   mult_kernel = "
-  __kernel void mult(__global const double2 *a,
-                      __global const double2 *b,
-                      __global double2 *c)
+  __kernel void mult(__global const float2 *a,
+                      __global const float2 *b,
+                      __global float2 *c)
   {
     int gid = get_global_id(0);
     c[gid].x = a[gid].x*b[gid].x - a[gid].y*b[gid].y;
@@ -82,7 +90,7 @@ end
 
 function build_conj_kernel(ctx)
   conj_kernel = "
-  __kernel void conj(__global double2 *a)
+  __kernel void conj(__global float2 *a)
   {
     int gid = get_global_id(0);
     a[gid].y = -a[gid].y;

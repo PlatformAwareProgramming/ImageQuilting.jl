@@ -5,7 +5,7 @@
 @platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), 
                                                accelerator_manufacturer::NVIDIA, 
                                                accelerator_api::(@api CUDA)})
-  println("Running on NVIDIA/CUDA GPU")
+  @info "Running on NVIDIA/CUDA GPU"
 end
 
 @platform aware array_kernel({accelerator_count::(@atleast 1), 
