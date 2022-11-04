@@ -3,7 +3,16 @@
 # ------------------------------------------------------------------
 
 @platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)})
-  println("Running on OpenCL device")
+  @info "Running on OpenCL device"
+  init_opencl_context()
+end
+
+function init_opencl_context()
+  # retrieve global OpenCL info
+  device_, ctx_, queue_ = cl.create_compute_context()
+  global device = device_
+  global ctx = ctx_
+  global queue = queue_
 end
 
 @platform aware array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) = array
@@ -17,9 +26,6 @@ end
 function imfilter_opencl(img, krn)
   # retrieve basic info
   T = ComplexF32
-
-  # retrieve global OpenCL info
-  device, ctx, queue = cl.create_compute_context()
 
   # build OpenCL program kernels
   conj_kernel = build_conj_kernel(ctx)
