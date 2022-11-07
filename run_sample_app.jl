@@ -10,12 +10,12 @@ function main(args)
 
       i = parse(Int64,args[1])
 
-      @info "large $i"
+      @info "small $i"
 
-      # large
-      TIₗ = geostatsimage("Fluvsim")
-      iqsim(asarray(TIₗ, :facies), (30, 30, 30))
-      @time iqsim(asarray(TIₗ, :facies), (30, 30, 30))
+      # small
+      TIₛ = geostatsimage("WalkerLake")
+      iqsim(asarray(TIₛ, :Z), (30, 30))
+      @time iqsim(asarray(TIₛ, :Z), (30, 30))
 
       @info "medium $i"
 
@@ -24,12 +24,12 @@ function main(args)
       iqsim(asarray(TIₘ, :K), (30, 30, 30))
       @time iqsim(asarray(TIₘ, :K), (30, 30, 30))
 
-      @info "small $i"
+      @info "large $i"
 
-      # small
-      TIₛ = geostatsimage("WalkerLake")
-      iqsim(asarray(TIₛ, :Z), (30, 30))
-      @time iqsim(asarray(TIₛ, :Z), (30, 30))
+      # large
+      TIₗ = geostatsimage("Fluvsim")
+      iqsim(asarray(TIₗ, :facies), (30, 30, 30))
+      @time iqsim(asarray(TIₗ, :facies), (30, 30, 30))
 
 end
 
