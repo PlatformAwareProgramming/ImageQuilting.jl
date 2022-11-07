@@ -44,7 +44,6 @@ function imfilter_opencl(img, krn)
   fftkrn = T.(padkrn)
 
   # OpenCl setup
-
   plan = CLFFT.Plan(T, ctx, size(fftimg))
   CLFFT.set_layout!(plan, :interleaved, :interleaved)
   CLFFT.set_result!(plan, :inplace)
