@@ -2,8 +2,8 @@
 # Licensed under the MIT License. See LICENCE in the project root.
 # ------------------------------------------------------------------
 
-@platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)})
-  @info "Running on OpenCL device"
+function init_kernel(::OpenCLMethod) 
+  @info "Running OpenCL kernel"
   init_opencl_context()
 end
 
@@ -15,14 +15,13 @@ function init_opencl_context()
   global queue = queue_
 end
 
-@platform aware array_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array) = array
+const array_kernel(::OpenCLMethod, array) = array
 
-@platform aware view_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, array, I) = view(array, I)
+const view_kernel(::OpenCLMethod, array, I) = view(array, I)
 
-@platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, img, krn)
+function imfilter_kernel(::OpenCLMethod, img, krn)
   imfilter_opencl(img, krn)
 end
-
 
 function imfilter_opencl(img, krn)
   # retrieve basic info

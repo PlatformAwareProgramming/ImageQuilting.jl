@@ -55,7 +55,7 @@ function iqsim(trainimg::AbstractArray{T,N}, tilesize::Dims{N},
   set_num_threads(threads)
 
   # initialize_imfilter_kernel
-  init_imfilter_kernel()
+  init_kernel()
 
   # sanity checks
   @assert all(0 .< tilesize .≤ size(trainimg)) "invalid tile size"

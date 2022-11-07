@@ -21,7 +21,6 @@ using RecipesBase
 using CUDA
 using OpenCL
 using CLFFT
-using PlatformAware
 
 using Base: @nexprs, @nloops, @nref
 using SparseArrays: spzeros
@@ -32,6 +31,7 @@ import GeoStatsBase: preprocess, solvesingle
 
 include("utils.jl")
 include("plotrecipes.jl")
+include("imfilter.jl")
 include("relaxation.jl")
 include("taumodel.jl")
 include("graphcut.jl")
@@ -39,14 +39,6 @@ include("iqsim.jl")
 include("voxelreuse.jl")
 include("geostats.jl")
 
-function __init__()    
-  include("src/kernels.jl")
-  include("src/kernel/imfilter_default.jl")
-  include("src/kernel/imfilter_cuda.jl")
-  include("src/kernel/imfilter_opencl.jl")
-end
-
-include("test_imfilter.jl")
 
 export
   # functions

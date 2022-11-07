@@ -54,7 +54,11 @@ function activation(hard, tile)
   buff
 end
 
-
+abstract type KernelMethod end
+struct CUDAMethod <: KernelMethod end
+struct OpenCLMethod <: KernelMethod end
+struct CPUMethod <: KernelMethod end
+    
 function imagepreproc(trainimg, soft, geoconfig)
   padsize = geoconfig.padsize
 
