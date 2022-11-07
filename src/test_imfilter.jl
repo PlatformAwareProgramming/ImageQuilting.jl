@@ -25,17 +25,17 @@ function test_imfilter(N)
     X = Int(round(N/2))
 
     @info "FIRST RUN - GPU - CUDA"
-    r1 = @btime imfilter_cuda(CuArray($img), $krn)
+    r1 = @time imfilter_cuda(CuArray(img), krn)
     @info "check = ", r1[X,X,X]
 
     @info("SECOND RUN - GPU - OpenCL")
     #global GPU = gpu_setup()
     init_opencl_context()
-    r2 = @btime imfilter_opencl($img, $krn)
+    r2 = @time imfilter_opencl(img, krn)
     @info "check = ", r2[X,X,X]
 
     @info "THIRD RUN -  CPU - ImageFiltering"
-    r3 = @btime imfilter($img, centered($krn), Inner(), Algorithm.FFT())
+    r3 = @time imfilter(img, centered(krn), Inner(), Algorithm.FFT())
     @info "check = ", r3[X,X,X]
 
     @info "r1 & r2", allclose(r1, r2; rtol=1e-2, atol=1e-3)
