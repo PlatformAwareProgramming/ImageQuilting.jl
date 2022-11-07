@@ -16,14 +16,10 @@ end
                              accelerator_manufacturer::NVIDIA, 
                              accelerator_api::(@api CUDA)}, array, I)  = Array(array[I])
 
-counter = Ref{Int}(0)
-
-
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), 
                                           accelerator_manufacturer::NVIDIA, 
                                           accelerator_api::(@api CUDA)}, img, krn)
 
-   counter[] = counter[] + 1
    imfilter_cuda(img,krn)
 end
 
