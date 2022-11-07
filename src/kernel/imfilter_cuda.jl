@@ -19,7 +19,6 @@ end
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), 
                                           accelerator_manufacturer::NVIDIA, 
                                           accelerator_api::(@api CUDA)}, img, krn)
-
    imfilter_cuda(img,krn)
 end
 
