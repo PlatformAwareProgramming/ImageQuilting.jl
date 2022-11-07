@@ -10,30 +10,35 @@ end
 
 @platform aware array_kernel({accelerator_count::(@atleast 1), 
                               accelerator_manufacturer::NVIDIA,
-                              accelerator_api::(@api CUDA)}, array) = CuArray(array)
+                              accelerator_api::(@api CUDA)}, array) =CuArray{Float32}(array)
 
 @platform aware view_kernel({accelerator_count::(@atleast 1), 
                              accelerator_manufacturer::NVIDIA, 
                              accelerator_api::(@api CUDA)}, array, I)  = Array(array[I])
 
+counter = Ref{Int}(0)
+
+
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), 
                                           accelerator_manufacturer::NVIDIA, 
                                           accelerator_api::(@api CUDA)}, img, krn)
+
+   counter[] = counter[] + 1
    imfilter_cuda(img,krn)
 end
 
 function imfilter_cuda(img, krn)
- 
+
    # pad kernel to common size with image
-   padkrn = CUDA.zeros(size(img))
-   copyto!(padkrn, CartesianIndices(krn), CuArray(krn), CartesianIndices(krn))
+   padkrn = CUDA.zeros(Float32, size(img))
+   copyto!(padkrn, CartesianIndices(krn), CuArray{Float32}(krn), CartesianIndices(krn))
  
    # perform ifft(fft(img) .* conj.(fft(krn)))
    fftimg = img |> CUFFT.fft
-   fftkrn = padkrn |> CuArray |> CUFFT.fft
+   fftkrn = padkrn |> CUFFT.fft
    result = (fftimg .* conj.(fftkrn)) |> CUFFT.ifft
  
    # recover result
    finalsize = size(img) .- (size(krn) .- 1)
    real.(result[CartesianIndices(finalsize)]) |> Array
-end
+ end
