@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------
 
 @platform aware function init_imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)})
-  @info "Running on OpenCL device"
+  @info "Running OpenCL kernel"
   init_opencl_context()
 end
 
@@ -22,7 +22,6 @@ end
 @platform aware function imfilter_kernel({accelerator_count::(@atleast 1), accelerator_api::(@api OpenCL)}, img, krn)
   imfilter_opencl(img, krn)
 end
-
 
 function imfilter_opencl(img, krn)
   # retrieve basic info
