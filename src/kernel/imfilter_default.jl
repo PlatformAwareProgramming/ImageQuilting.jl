@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------
 
 @platform default function init_imfilter_kernel()
-  @info "Running on DEFAULT PLATFORM"
+  @info "Running default kernel"
 end
 
 @platform default array_kernel(array) = array
